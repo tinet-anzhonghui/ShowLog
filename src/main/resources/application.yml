@@ -1,0 +1,12 @@
+server:
+  port: 20080
+  jsp-servlet:
+    init-parameters:
+      development : true #springboot启动，修改jsp页面，重新编译
+  
+#视图解析器
+spring:
+  mvc:
+    view:
+      prefix : /pages
+      suffix : .jsp
