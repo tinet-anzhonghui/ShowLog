@@ -56,7 +56,7 @@ public class FileUtil {
 			// System.out.println("父文件名称："+parent);
 			for (int i = 0; i < list.length; i++) {
 				String s = list[i];
-				String newFilePath = path + Constant.SLASH + s;// 根据当前文件夹，拼接其下文文件形成新的路径
+				String newFilePath = path + Constant.FileConstant.SLASH + s;// 根据当前文件夹，拼接其下文文件形成新的路径
 				file(newFilePath);
 			}
 		}
@@ -90,12 +90,12 @@ public class FileUtil {
 		if (file.isDirectory()) {
 			String name = file.getName();
 			String path = file.getAbsolutePath();
-			Tree tree = new Tree(id, name, path, parentid, "folder");
+			Tree tree = new Tree(id, name, path + Constant.FileConstant.SLASH, parentid, "folder");
 			maps.put(id++, tree);
 			String[] list = file.list();
 			for (int i = 0; i < list.length; i++) {
 				String s = list[i];
-				String newFilePath = path + Constant.SLASH + s;// 根据当前文件夹，拼接其下文文件形成新的路径
+				String newFilePath = path + Constant.FileConstant.SLASH + s;// 根据当前文件夹，拼接其下文文件形成新的路径
 				file(newFilePath, tree.getId());
 			}
 		}
@@ -132,8 +132,8 @@ public class FileUtil {
 	 * @date: 2019年3月6日 下午1:00:30 
 	 */
 	public static String getFileNameByRemind(String path, String remind) {
-		if (!path.startsWith(Constant.SLASH)) {
-			path = Constant.SLASH + path;
+		if (!path.startsWith(Constant.FileConstant.SLASH)) {
+			path = Constant.FileConstant.SLASH + path;
 		}
 		File file = new File(path);
 		String[] names = file.list();

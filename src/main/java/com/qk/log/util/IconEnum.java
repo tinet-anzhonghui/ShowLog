@@ -32,9 +32,9 @@ public enum IconEnum {
 
 	public static String getIconByType(String type) {
 		switch (type) {
-		case "file":
+		case Constant.FileTypeConstant.file:
 			return File.value;
-		case "folder":
+		case Constant.FileTypeConstant.folder:
 			return Folder.value;
 		default:
 			return "";

@@ -8,7 +8,10 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.qk.log.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -16,11 +19,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.qk.log.bean.FileDirectory;
 import com.qk.log.bean.Tree;
 import com.qk.log.component.ServerConfig;
-import com.qk.log.util.Constant;
-import com.qk.log.util.FileUtil;
-import com.qk.log.util.GsonUtil;
-import com.qk.log.util.IconEnum;
-import com.qk.log.util.TailLogThread;
 
 @Controller
 public class LogController {
@@ -30,9 +28,10 @@ public class LogController {
 	// 输入流
 	private InputStream inputStream;
 
-	
 	@Autowired
 	private ServerConfig serverConfig;
+	@Autowired
+	private AddConfigUtil addConfigUtil;
 
 	/**
 	 * 
@@ -63,19 +62,24 @@ public class LogController {
 		// FileUtil.toStringMaps();
 		FileUtil.file(filePath, 0);
 		FileUtil.toStringMaps();
+		// 文件过滤
+        addConfigUtil.performFilter(FileUtil.maps);
 
 		List<FileDirectory> listVO = new ArrayList<FileDirectory>();
 		Tree root = FileUtil.maps.get(0);
 		listVO.add(new FileDirectory(root.getId().toString(), "#", root.getName(),
 				IconEnum.getIconByType(root.getType())));
+
 		// 从根节点往后追加节点
-		for (int i = 1; i < FileUtil.maps.size(); i++) {
-			Tree tree = FileUtil.maps.get(i);
-			// System.out.println("id:" + tree.getId() + " parentId:" +
-			// tree.getParentId() + "==" + tree.getPath());
-			listVO.add(new FileDirectory(tree.getId().toString(), tree.getParentId().toString(), tree.getName(),
-					IconEnum.getIconByType(tree.getType())));
-		}
+        FileUtil.maps.forEach((key, value) -> {
+        	// 不处理根节点
+            if (key == 0) {
+                return;
+            }
+            Tree tree = value;
+            listVO.add(new FileDirectory(tree.getId().toString(), tree.getParentId().toString(), tree.getName(),
+                    IconEnum.getIconByType(tree.getType())));
+        });
 
 		System.out.println(GsonUtil.BeanToGson(listVO));
 		return GsonUtil.BeanToGson(listVO);
@@ -100,7 +104,7 @@ public class LogController {
 	public String remind(String filePath) {
 		System.out.println("文件路径：" + filePath);
 
-		int startIndex = filePath.lastIndexOf(Constant.SLASH);
+		int startIndex = filePath.lastIndexOf(Constant.FileConstant.SLASH);
 		if (startIndex == -1) {
 			return null;
 		}
@@ -118,10 +122,10 @@ public class LogController {
 		}
 		StringBuffer sBuffer = new StringBuffer();
 		sBuffer.append(path);
-		sBuffer.append(Constant.SLASH);
+		sBuffer.append(Constant.FileConstant.SLASH);
 		sBuffer.append(fileName);
 		if (fileName.lastIndexOf(".") == -1) {
-			sBuffer.append(Constant.SLASH);
+			sBuffer.append(Constant.FileConstant.SLASH);
 		}
 		System.out.println(sBuffer.toString());
 		return sBuffer.toString();
@@ -193,5 +197,11 @@ public class LogController {
 		String contextPath = serverConfig.getUrl(request);
 		System.out.println("本机的外网ip和端口：" + contextPath);
 		return contextPath;
+	}
+
+	@RequestMapping("/test")
+	public void test(){
+		SpringUtil.getBean(AddConfigUtil.class).init();
+		System.out.println(SpringUtil.getBean(AddConfigUtil.class).toString());
 	}
 }
