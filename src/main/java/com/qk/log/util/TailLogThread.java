@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 
 import com.qk.log.component.WebSocketComponent;
 
+import javax.websocket.Session;
+
 /**
  * 
  * @ClassName: TailLogThread.java
@@ -19,6 +21,7 @@ import com.qk.log.component.WebSocketComponent;
 public class TailLogThread extends Thread {
 
     private BufferedReader reader;
+    private Session session;
 
     /**
      * 
@@ -27,8 +30,9 @@ public class TailLogThread extends Thread {
      * @author: AN
      * @date: 2019年3月6日 下午1:03:59
      */
-    public TailLogThread(InputStream in) {
+    public TailLogThread(InputStream in, Session session) {
         this.reader = new BufferedReader(new InputStreamReader(in));
+        this.session = session;
     }
 
     @Override
@@ -36,9 +40,10 @@ public class TailLogThread extends Thread {
         String line;
         try {
             while((line = reader.readLine()) != null) {
+                session.getBasicRemote().sendText(line + "<br>");
             	// System.out.println("读取到的信息："+line);
                 // 将实时日志通过WebSocket发送给客户端，给每一行添加一个HTML换行
-                WebSocketComponent.session.getBasicRemote().sendText(line + "<br>");
+                //WebSocketComponent.session.getBasicRemote().sendText(line + "<br>");
             }
         } catch (IOException e) {
             e.printStackTrace();

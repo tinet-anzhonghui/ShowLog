@@ -28,10 +28,10 @@ public class AddConfigUtil {
     @Value("${no-permission.filter.prefix}")
     private String filterPrefixs;
 
-    private List<String> filterFileList;
-    private List<String> filterDirectoryList;
-    private List<String> filterSuffixList;
-    private List<String> filterPrefixList;
+    private List<String> filterFileList = new ArrayList<>();;
+    private List<String> filterDirectoryList = new ArrayList<>();
+    private List<String> filterSuffixList = new ArrayList<>();
+    private List<String> filterPrefixList = new ArrayList<>();;
 
     public static String addConfigPath = "";
 
@@ -50,15 +50,10 @@ public class AddConfigUtil {
     public void init() {
         // 前后顺序很重要，第一种决定结果
         if (CollectionUtils.isNull(filterFileList) && StringUtils.isNotEmpty(filterFiles)) {
-            filterFileList = new ArrayList<>();
             // 文件前面添加分隔符，避免文件夹名称跟文件名称相同
-            String[] files = filterFiles.split(",");
-            for (String file : files) {
-                filterFileList.add(Constant.FileConstant.SLASH + file);
-            }
+            filterFileList = Arrays.asList(filterFiles.split(","));
         }
         if (CollectionUtils.isNull(filterDirectoryList) && StringUtils.isNotEmpty(filterDirectorys)) {
-            filterDirectoryList = new ArrayList<>();
             // 文件前面添加分隔符，避免文件夹名称跟文件名称相同
             String[] directorys = filterDirectorys.split(",");
             for (String directory : directorys) {
@@ -103,7 +98,7 @@ public class AddConfigUtil {
 
             // 过滤文件
             for (String file : filterFileList) {
-                if (value.getPath().lastIndexOf(file) != -1) {
+                if (Objects.equals(file, value.getName())) {
                     treeIterator.remove();
                     continue start;
                 }
@@ -111,7 +106,8 @@ public class AddConfigUtil {
 
             // 过滤后缀
             for (String suffix : filterSuffixList) {
-                if (value.getPath().lastIndexOf(suffix) != -1) {
+                int lastIndex = value.getName().lastIndexOf(suffix);
+                if (lastIndex != -1 && (value.getName().length() - lastIndex == suffix.length())) {
                     treeIterator.remove();
                     continue start;
                 }
@@ -119,7 +115,7 @@ public class AddConfigUtil {
 
             // 过滤前缀
             for (String prefix : filterPrefixList) {
-                if (value.getPath().lastIndexOf(prefix) != -1) {
+                if (value.getName().startsWith(prefix)) {
                     treeIterator.remove();
                     continue start;
                 }

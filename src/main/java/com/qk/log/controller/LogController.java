@@ -5,9 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.qk.log.bean.SessionManage;
+import com.qk.log.component.WebSocketComponent;
 import com.qk.log.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +30,8 @@ public class LogController {
 	private Process process;
 	// 输入流
 	private InputStream inputStream;
+	// 自增类
+	private AtomicInteger atomicInteger = new AtomicInteger();
 
 	@Autowired
 	private ServerConfig serverConfig;
@@ -146,7 +151,7 @@ public class LogController {
 	 *
 	 */
 	@RequestMapping(value = "/startTail")
-	public void startTail(String id, Integer displayRowNum) {
+	public void startTail(String id, Integer displayRowNum, String sessionId) {
 		if (id == null) {
 			return;
 		}
@@ -161,16 +166,23 @@ public class LogController {
 		}
 		System.out.println(command);
 
+		// 根据seesionid获取session管理类
+		SessionManage sessionManage = WebSocketComponent.sessionManageMap.get(sessionId);
+		if (sessionManage == null) {
+			return;
+		}
+
 		try {
+
 			// 执行tail -f命令 （杀死上一个线程）
-			if (process != null) {
-				process.destroy();
+			if (sessionManage.getProcess() != null) {
+				sessionManage.getProcess().destroy();
 			}
-			process = Runtime.getRuntime().exec(command);
-			inputStream = process.getInputStream();
+			sessionManage.setProcess(Runtime.getRuntime().exec(command));
+			inputStream = sessionManage.getProcess().getInputStream();
 
 			// 一定要启动新的线程，防止InputStream阻塞处理WebSocket的线程
-			TailLogThread thread = new TailLogThread(inputStream);
+			TailLogThread thread = new TailLogThread(inputStream, sessionManage.getSession());
 			thread.start();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -178,18 +190,41 @@ public class LogController {
 	}
 
 	/**
-	 * 
+	 * @Description: 获取sessionid
+	 * @version: v1.0.0
+	 * @author: AN
+	 * @date: 2019年3月6日 下午12:55:03
+	 */
+	@RequestMapping("/getSessionId")
+	@ResponseBody
+	public String getSessionId() {
+		// session id 获取当前的值并自增
+		return "session"+atomicInteger.getAndIncrement();
+	}
+
+	/**
+	 * @Description: 获取sessionid
+	 * @version: v1.0.0
+	 * @author: AN
+	 * @date: 2019年3月6日 下午12:55:03
+	 */
+	@RequestMapping("/removeSession")
+	@ResponseBody
+	public void removeSession(String sessionId) {
+		// session id 当窗体关闭，移除session，并杀掉线程
+		SessionManage sessionManage = WebSocketComponent.sessionManageMap.get(sessionId);
+		if (sessionManage.getProcess() != null) {
+			sessionManage.getProcess().destroy();
+		}
+		WebSocketComponent.sessionManageMap.remove(sessionId);
+	}
+
+	/**
 	 * @Function: LogController.java
 	 * @Description: 获取本机的外网IP，主要是为了处理${pageContext.request.contextPath}属性在jsp页面不好用，可能是springboot的原因
-	 *
-	 * @param:描述1描述
-	 * @return：返回结果描述
-	 * @throws：异常描述
-	 *
 	 * @version: v1.0.0
 	 * @author: AN
 	 * @date: 2019年3月6日 下午12:55:03 
-	 *
 	 */
 	@RequestMapping("/getIPV4")
 	@ResponseBody

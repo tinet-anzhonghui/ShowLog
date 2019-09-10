@@ -10,5 +10,9 @@ public class StringTest {
         System.out.println(str1);
         String str2 = "test.txt";
         System.out.println(str1.lastIndexOf(str2));
+
+        String str3 = "test_1.txt";
+        System.out.println(str3.startsWith("test_"));
     }
+
 }

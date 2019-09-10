@@ -1,6 +1,8 @@
 package com.qk.log.component;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -10,6 +12,7 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
+import com.qk.log.bean.SessionManage;
 import org.springframework.stereotype.Component;
 
 /**
@@ -20,10 +23,12 @@ import org.springframework.stereotype.Component;
  * @date: 2018年8月18日 下午3:45:05
  * 
  */
-@ServerEndpoint(value = "/websocket")
+@ServerEndpoint(value = "/websocket/{sessionId}")
 @Component
 public class WebSocketComponent {
 
+	// session的管理类,key是sessionid，value是管理类
+	public static Map<String, SessionManage> sessionManageMap = new ConcurrentHashMap<>();
 	// 与某个客户端的连接会话，需要通过它来给客户端发送数据
 	public static Session session = null;
 
@@ -33,20 +38,24 @@ public class WebSocketComponent {
 	 *
 	 * @author: AN
 	 * @date: 2018年8月18日 下午3:45:05
-	 * @param websocketType
-	 *            客户端发送过来的websocket连接类型
+	 * @param sessionId
+	 *            自动生成的会话id
 	 * @param session
 	 *            会话
 	 * 
 	 */
 	@OnOpen
-	public void onOpen(@PathParam("websocketType") String websocketType, Session session) {
-		
-		System.out.println("建立websocket连接了，赋值session");
-		WebSocketComponent.session = session;
+	public void onOpen(@PathParam("sessionId") String sessionId, Session session) {
+
+		// 新逻辑
+		WebSocketComponent.sessionManageMap.put(sessionId, new SessionManage(sessionId, session));
+
+		// 原逻辑
+//		System.out.println("建立websocket连接了，赋值session");
+//		WebSocketComponent.session = session;
     	
 		try {
-			sendMessage("success<br/>");
+			sendMessage(session, "success<br/>");
 		} catch (IOException e) {
 			System.out.println("IO异常");
 		}
@@ -105,8 +114,8 @@ public class WebSocketComponent {
 	 * @date: 2018年8月18日 下午3:45:05
 	 * 
 	 */
-	public void sendMessage(String message) throws IOException {
-		WebSocketComponent.session.getBasicRemote().sendText(message);
+	public void sendMessage(Session session, String message) throws IOException {
+		session.getBasicRemote().sendText(message);
 	}
 
 }

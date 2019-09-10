@@ -8,6 +8,7 @@ import java.net.UnknownHostException;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.qk.log.util.HostDataUtil;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -32,7 +33,7 @@ public class ServerConfig implements ApplicationListener<WebServerInitializedEve
 		if (reqIP.startsWith("0")) {
 			return "localhost:" + this.serverPort;
 		}
-		String ip = getIPV4();
+		String ip = HostDataUtil.getLocalIP();
 		return ip + ":" + this.serverPort;
 	}
 
