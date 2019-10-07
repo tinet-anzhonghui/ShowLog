@@ -1,7 +1,13 @@
 # 过滤文件名称、目录、后缀、前缀，名称之间用英文,号隔开，例如：test.txt,1.txt；过滤顺序：目录 👉 文件 👉 后缀 👉 前缀；注意：如果是目录，最后不用加文件分隔符
 no-permission:
+  enable: true
   filter:
     directory: E:\hxInvoicingSystemLogs\test1,E:\log
     file: test.txt,1.txt
     suffix: .log
     prefix: test_
+
+# 指定路径
+specified-path:
+  enable: true
+  directory: E:\hxInvoicingSystemLogs,E:\log1

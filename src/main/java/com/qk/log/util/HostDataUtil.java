@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
+
 public class HostDataUtil {
 
     // 主机名称
@@ -39,7 +40,6 @@ public class HostDataUtil {
 
     /**
      * 获得主机IP
-     *
      * @return String
      */
     public static boolean isWindowsOS() {
@@ -53,7 +53,6 @@ public class HostDataUtil {
 
     /**
      * 获取本机ip地址，并自动区分Windows还是linux操作系统
-     *
      * @return String
      */
     public static String getLocalIP() {
@@ -80,7 +79,7 @@ public class HostDataUtil {
                     Enumeration<InetAddress> ips = ni.getInetAddresses();
                     while (ips.hasMoreElements()) {
                         ip = (InetAddress) ips.nextElement();
-                        if((ip.getHostAddress().endsWith(".0")) || (ip.getHostAddress().endsWith(".1"))){
+                        if ((ip.getHostAddress().endsWith(".0")) || (ip.getHostAddress().endsWith(".1"))) {
                             continue;
                         }
                         if (ip.isSiteLocalAddress() && !ip.isLoopbackAddress() // 127.开头的都是lookback地址

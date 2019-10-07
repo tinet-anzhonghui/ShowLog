@@ -23,6 +23,12 @@ import com.qk.log.bean.FileDirectory;
 import com.qk.log.bean.Tree;
 import com.qk.log.component.ServerConfig;
 
+/**
+ * @ClassName: LogController
+ * @Description: 日志相关的controller
+ * @Author: huihui
+ * @CreateDate: 2019/9/11 8:35
+ */
 @Controller
 public class LogController {
 
@@ -61,13 +67,20 @@ public class LogController {
 			return null;
 		}
 
+		// 判断指定的路径
+		if (!addConfigUtil.judgeSpecifiedPath(filePath)) {
+			return "";
+		}
+
 		// 读取路径内容
 		// FileUtil.toStringMaps();
 		FileUtil.clear(); // 清空存储文件的map集合
 		// FileUtil.toStringMaps();
 		FileUtil.file(filePath, 0);
 		FileUtil.toStringMaps();
-		// 文件过滤
+		// 指定展示的路径
+        addConfigUtil.specifiedPath(FileUtil.maps);
+        // 文件过滤
         addConfigUtil.performFilter(FileUtil.maps);
 
 		List<FileDirectory> listVO = new ArrayList<FileDirectory>();
@@ -173,7 +186,6 @@ public class LogController {
 		}
 
 		try {
-
 			// 执行tail -f命令 （杀死上一个线程）
 			if (sessionManage.getProcess() != null) {
 				sessionManage.getProcess().destroy();
@@ -191,9 +203,8 @@ public class LogController {
 
 	/**
 	 * @Description: 获取sessionid
-	 * @version: v1.0.0
-	 * @author: AN
-	 * @date: 2019年3月6日 下午12:55:03
+	 * @Author: huihui
+	 * @CreateDate: 2019/9/11 8:34
 	 */
 	@RequestMapping("/getSessionId")
 	@ResponseBody
@@ -203,10 +214,9 @@ public class LogController {
 	}
 
 	/**
-	 * @Description: 获取sessionid
-	 * @version: v1.0.0
-	 * @author: AN
-	 * @date: 2019年3月6日 下午12:55:03
+	 * @Description: 移除session管理类
+	 * @Author: huihui
+	 * @CreateDate: 2019/9/11 8:34
 	 */
 	@RequestMapping("/removeSession")
 	@ResponseBody
@@ -220,7 +230,6 @@ public class LogController {
 	}
 
 	/**
-	 * @Function: LogController.java
 	 * @Description: 获取本机的外网IP，主要是为了处理${pageContext.request.contextPath}属性在jsp页面不好用，可能是springboot的原因
 	 * @version: v1.0.0
 	 * @author: AN

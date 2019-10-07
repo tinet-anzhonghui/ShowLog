@@ -24,10 +24,10 @@
     <script src="js/websocket/reconnecting-websocket.min.js"></script>
 
     <style>
-		mark {
-			background-color:yellow;
-			font-weight:bold;
-		}
+        mark {
+            background-color: yellow;
+            font-weight: bold;
+        }
 
     </style>
 
@@ -42,6 +42,9 @@
                        name="filePath" placeholder="请输入日志路径（tab提醒）"/>
             </div>
         </div>
+        <div class="col-sm-1">
+            <button id="init" type="button" class="btn btn-success">初始化</button>
+        </div>
         <label class="col-sm-1 control-label" style="padding-left:35px; ">显示行数：</label>
         <div class="col-sm-2" style="padding-left: 0px;">
             <div class="form-group">
@@ -55,9 +58,6 @@
                 <input id="filterKey" type="text" class="form-control"
                        name="filterKey" placeholder="默认无"/>
             </div>
-        </div>
-        <div class="col-sm-1">
-            <button id="init" type="button" class="btn btn-success">初始化</button>
         </div>
         <div class="col-sm-1">
             <button id="empty" type="button" class="btn btn-danger">清空</button>
@@ -99,7 +99,7 @@
             }
         });
 
-        // sessionid getSessionId
+        // 从后台请求唯一的sessionid
         $.ajax({
             url: '${pageContext.request.contextPath}/getSessionId',
             type: 'GET',
@@ -109,18 +109,12 @@
             }
         });
 
-        /**
-         *  功能概述：建立websocket连接
-         *  编写人： 安仲辉
-         *  时间：2018.8.18
-         */
-            //全局变量们
+        // wesocket start
         var websocket = null;
         //判断当前浏览器是否支持WebSocket 49.4.69.9
         if ('WebSocket' in window) {
             console.log('ws://' + contextPath + '/websocket/' + sessionId);
             websocket = new ReconnectingWebSocket('ws://' + contextPath + '/websocket/' + sessionId); //${pageContext.request.contextPath}
-            //websocket = new WebSocket("ws://localhost:8080/WEControlSystem/websocket/INQUIRE_NOW");
         } else {
             alert('对不起，您使用的浏览器版本较低，为了带来更好的体验，请升级你的浏览器或换成谷歌浏览器')
         }
@@ -163,16 +157,19 @@
         function send(msg) {
             websocket.send(msg);
         }
+		// wesocket end
 
+        // 过滤关键字，关键字替换为高亮显示
         function keyWordFilter(content) {
             var key = $("#filterKey").val();
             if (key == null || key == "") {
-            	return content;
-			}
+                return content;
+            }
             var reg = new RegExp("(" + key + ")", "g");
             return content.replace(reg, "<mark>$1</mark>");
         }
 
+        // 窗体关闭时间，清除服务器的tial进程（未考虑断网的情况） TODO 断网情况的后台进程的清除
         window.onbeforeunload = function (e) {
             $.ajax({
                 url: "${pageContext.request.contextPath}/removeSession",
@@ -187,6 +184,7 @@
 <!-- bootstrap-treeview 树状图、初始化按钮、显示行数输入框-->
 <script type="text/javascript">
     var js_tree = $('#js_tree');
+    // 初始化按钮，监听树
     $("#init").click(function () {
         var filePath = $("#filePath").val();
         $
@@ -197,17 +195,22 @@
                 success: function (result) {
                     js_tree.jstree(true).settings.core.data = result;
                     js_tree.jstree(true).refresh();
+                },
+                error: function () {
+                    alert("路径格式错误或找不到对应的文件夹！");
                 }
             });
     });
 
     $(function () {
+        // 初始化树
         js_tree.jstree({
             'core': {
                 'data': null
             }
         });
 
+        // 列表书的点击动作绑定
         js_tree.bind("activate_node.jstree", function (obj, e) {
             // 处理代码
             // 获取当前节点
@@ -219,11 +222,13 @@
                 return;
             }
             var endIndex = text.length;
-            var suffix = text.substring(startIndex + 1, endIndex); //后缀名
+            //后缀名
+            var suffix = text.substring(startIndex + 1, endIndex);
 
             // 获取显示的行数
             var displayRowNum = $("#displayRowNum").val();
-            var regex = /^\+?[0-9][0-9]*$/; //判断是否为正整数
+            //判断是否为正整数
+            var regex = /^\+?[0-9][0-9]*$/;
             if (displayRowNum != null && displayRowNum != '') {
                 if (!regex.test(displayRowNum)) {
                     alert("请输入正整数或零")
@@ -231,13 +236,14 @@
                 }
             }
 
+            // 执行tail指令
             $.ajax({
                 url: "${pageContext.request.contextPath}/startTail",
                 type: "GET",
                 data: "id=" + currentNode.id + "&displayRowNum=" + displayRowNum + "&sessionId=" + sessionId,
                 success: function (result) {
                     console.log("监控成功");
-					$("#log-container div").empty();
+                    $("#log-container div").empty();
                 }
             });
         });
@@ -259,16 +265,6 @@
             if (filePath == null || filePath == "") {
                 return;
             }
-            /* var startIndex = filePath.lastIndexOf("\\");
-            if (startIndex == -1) {
-                return;
-            }
-            var endIndex = filePath.length;
-            var remind = filePath.substring(startIndex+1, endIndex);
-            var path = filePath.substring(0, startIndex);
-            if (remind == null) {
-                return;
-            } */
             $.ajax({
                 url: "${pageContext.request.contextPath}/remind",
                 type: "POST",
