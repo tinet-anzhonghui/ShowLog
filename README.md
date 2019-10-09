@@ -4,7 +4,7 @@
 
 ### 编译器
 
-如果是直接导入了编译器，如eclipse，直接run APP即可
+<center>如果是直接导入了编译器，如eclipse，直接run APP即可</center>
 
 ### 导出jar包
 
